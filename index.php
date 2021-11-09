@@ -1,40 +1,70 @@
 <?php
 
-use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Message\ServerRequestInterface as Request;
-use Slim\Factory\AppFactory;
-use Slim\Exception\NotFoundException;
+    use Psr\Http\Message\ResponseInterface as Response;
+    use Psr\Http\Message\ServerRequestInterface as Request;
+    use Slim\Factory\AppFactory;
+    use Slim\Exception\NotFoundException;
 
-require 'vendor/autoload.php';
+    require 'vendor/autoload.php';
+    require_once 'WSVentas.php';
+	require_once 'WSAlmacen.php';
+    
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+    $dotenv->load();
 
-$app = AppFactory::create();
-$app->addRoutingMiddleware();
-$errorMiddleware = $app->addErrorMiddleware(true, true, true);
-$wsventasEndpoint = 'https://wsventas.azurewebsites.net/WSVentas.php?wsdl';
-$wsventas = new SoapClient($wsventasEndpoint);
-$wsalmacenEndpoint = 'https://wsalmacen-wcf.azurewebsites.net/WSAlmacen.svc?wsdl';
-$wsalmacen = new SoapClient($wsalmacenEndpoint);
+    $app = AppFactory::create();
+    $app->addBodyParsingMiddleware();
+    $app->addRoutingMiddleware();
+    $errorMiddleware = $app->addErrorMiddleware(true, true, true);
+    
+    $wsVentasEndpoint = $_ENV['WS_VENTAS_ENDPOINT'];
+    $wsAlmacenEndpoint = $_ENV['WS_ALMACEN_ENDPOINT'];
+    $wsVentas = new WSVentas($wsVentasEndpoint);
+    $wsAlmacen = new WSAlmacen($wsAlmacenEndpoint);
 
-$app->get('/getProd[/{categoria}]', function ( Request $request, Response $response, $args ) {
-global $wsventas;
-$body = $request->getParsedBody();
+	//RECEIVE REQUEST ONLY WITH Content-Type: application/json
 
-$result = $wsventas->__soapCall('getProd', array(
-    'user'=>$request["user"], 'pass'=>$request["pass"], 'categoria'=>$request["categoria"]));
-    $json = array('code'=>$result->code, 'message'=>$result->message, 'data'=>$result->data, 'status'=>$result->status);
-    $response->getBody()->write(json_encode($json, JSON_PRETTY_PRINT));
-return $response;
-});
+    $app->get('/getProd[/{categoria}]', function ( Request $request, Response $response, $args ) {
+        global $wsVentas;
+        $body = $request->getParsedBody();
+        $result = $wsVentas->getProd( $body['user'], $body['pass'], $args['categoria'] );
+        $response->getBody()->write($result);
+        return $response;
+    });
 
-$app->put('/updateProd[/{isbn}]', function ( Request $request, Response $response, $args ) {
-global $wsalmacen;
-$body = $request->getParsedBody();
-$result = $wsalmacen->__soapCall('updateProd', array(
-    'user'=>$body["user"], 'pass'=>$body["pass"], 'detalles'=>$body["detalles"], 'isbn'=>$args["isbn"]));
-    $json = array('code'=>$result->code, 'message'=>$result->message, 'data'=>$result->data, 'status'=>$result->status);
-    $response->getBody()->write(json_encode($json, JSON_PRETTY_PRINT));
-});
+    $app->get('/getDetails[/{isbn}]', function ( Request $request, Response $response, $args ){
+        global $wsVentas;
+        $body = $request->getParsedBody();
+        $result = $wsVentas->getDetails($body['user'], $body['pass'], $args['isbn']);
+        $response->getBody()->write($result);
+        return $response;
+    });
 
-$app->run();
+    $app->put('/updateProd[/{isbn}]',function ( Request $request, Response $response, $args ) {
+        global $wsAlmacen;
+        $body = $request->getParsedBody();
+		$result = $wsAlmacen->updateProd($body['user'], $body['pass'], $args['isbn'], $body["detalles"]);
+        $response->getBody()->write($result);
+        return $response;
+    });
 
+    $app->put('/setProd[/{isbn}]', function ( Request $request, Response $response, $args ){
+        global $wsAlmacen;
+        $body = $request->getParsedBody();
+        $result = $wsAlmacen->setProd($body['user'], $body['pass'], $args['isbn'], $body["detalles"]);
+        $response->getBody()->write($result);
+        return $response;
+
+    });
+
+    $app->delete('/deleteProd[/{isbn}]', function ( Request $request, Response $response, $args ){
+        global $wsAlmacen;
+        $body = $request->getParsedBody();
+        $result = $wsAlmacen->deleteProd($body['user'], $body['pass'], $args['isbn']);
+        $response->getBody()->write($result);
+        return $response;
+    });
+
+
+    $app->run();
 ?>
