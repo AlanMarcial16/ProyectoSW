@@ -7,13 +7,13 @@
         }
 
         public function updateProd( $user, $pass, $isbn, $detalles ){
-            $result = $this->client->__soapCall('updateProd', array(
+            $result = $this->client->updateProd(array(
                 'user' => $user,
                 'pass' => $pass,
                 'isbn' => $isbn,
-                'detalles' => $detalles
+                'detalles' => json_encode($detalles)
             ));
-            return json_encode($result);
+            return json_encode($result->updateProdResult);
         }
     }
 ?>

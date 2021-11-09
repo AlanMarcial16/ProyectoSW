@@ -18,26 +18,37 @@
     
     $wsVentasEndpoint = $_ENV['WS_VENTAS_ENDPOINT'];
     $wsAlmacenEndpoint = $_ENV['WS_ALMACEN_ENDPOINT'];
-    $wsVentas = new WSVentas($wsVentasEndpoint);
+    $wsVentas = new SoapClient($wsVentasEndpoint);
     $wsAlmacen = new WSAlmacen($wsAlmacenEndpoint);
 
 	//RECEIVE REQUEST ONLY WITH Content-Type: application/json
 
+    // $app->get('/getProd[/{categoria}]', function ( Request $request, Response $response, $args ) {
+    //     global $wsVentas;
+    //     $body = $request->getParsedBody();
+    //     $result = $wsVentas->getProd( $body['user'], $body['pass'], $args['categoria'] );
+    //     $response->getBody()->write($result);
+    //     return $response;
+    // });
     $app->get('/getProd[/{categoria}]', function ( Request $request, Response $response, $args ) {
         global $wsVentas;
         $body = $request->getParsedBody();
-        $result = $wsVentas->getProd( $body['user'], $body['pass'], $args['categoria'] );
-        $response->getBody()->write($result);
+        $result = $wsVentas->getProd( array(
+            'user' => $body['user'],
+            'pass' => $body['pass'],
+            'categoria' => $args['categoria'] 
+        ));
+        $response->getBody()->write(json_encode($result));
         return $response;
     });
 
-    $app->put('/updateProd[/{isbn}]',function ( Request $request, Response $response ) {
-        global $wsAlmacen;
-        $body = $request->getParsedBody();
-		$result = $wsAlmacen->__soapCall('updateProd', array('user'=>$body["user"], 'pass'=>$body["pass"], 'isbn'=>$args["isbn"],'detalles'=>$body["detalles"]));
-        $response->getBody()->write($result);
-        return $response;
-    });
+    // $app->put('/updateProd[/{isbn}]',function ( Request $request, Response $response, $args ) {
+    //     global $wsAlmacen;
+    //     $body = $request->getParsedBody();
+	// 	$result = $wsAlmacen->updateProd($body['user'], $body['pass'], $args['isbn'], $body['detalles'] );
+    //     $response->getBody()->write($result);
+    //     return $response;
+    // });
 
     $app->run();
 ?>
