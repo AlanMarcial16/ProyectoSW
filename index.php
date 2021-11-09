@@ -23,6 +23,4 @@ $app->get('/hola[/{nombre}]', function( Request $request, Response $response, $a
 
 $app->run();
 
-
-
 ?>
