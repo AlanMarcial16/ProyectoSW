@@ -4,7 +4,7 @@
     use Slim\Factory\AppFactory;
     use Slim\Exception\NotFoundException;
 
-    require '../vendor/autoload.php';
+    require 'vendor/autoload.php';
     require_once 'WSVentas.php';
 	require_once 'WSAlmacen.php';
     
