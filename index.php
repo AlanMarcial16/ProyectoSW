@@ -51,7 +51,7 @@
             'user' => $body['user'],
             'pass' => $body['pass'],
             'categoria' => $args['categoria'],
-            'producto' => json_encode($body['producto'])));
+            'producto' => $body['producto']));
         $response->getBody()->write(json_encode($result->setProdResult));
         return $response;
     });
@@ -63,7 +63,7 @@
             'user' => $body['user'],
             'pass' => $body['pass'],
             'isbn' => $args['isbn'],
-            'detalles' => json_encode($body['detalles'])));
+            'detalles' => $body['detalles']));
         $response->getBody()->write(json_encode($result->updateProdResult));
         return $response;
     });
