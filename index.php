@@ -44,14 +44,14 @@
         return $response;
     });
 
-    $app->post('/setProd[/{isbn}]', function ( Request $request, Response $response, $args ){
+    $app->post('/setProd[/{categoria}]', function ( Request $request, Response $response, $args ){
         global $wsAlmacen;
         $body = $request->getParsedBody();
         $result = $wsAlmacen->setProd(array(
             'user' => $body['user'],
             'pass' => $body['pass'],
-            'isbn' => $args['isbn'],
-            'detalles' => json_encode($body['detalles'])));
+            'categoria' => $args['categoria'],
+            'producto' => json_encode($body['producto'])));
         $response->getBody()->write(json_encode($result->setProdResult));
         return $response;
     });
